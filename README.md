@@ -78,7 +78,7 @@ export const llm = new ChatOpenAI({
 
 ```bash
 # Após todos os passos anteriores, execute o projeto
-node src/main.js
+npm start
 ```
 
 ---
