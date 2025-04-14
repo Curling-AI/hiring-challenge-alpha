@@ -4,24 +4,30 @@ Um agente inteligente que responde perguntas sobre um banco de dados musical e d
 
 ---
 
-## Como Rodar o Projeto
-
-```bash
-# Instale as dependências
-npm install
-
-# Execute o projeto
-node src/main.js
-```
-
 ### Requisitos
 
+- Git instalado
 - Node.js v18+
 - Banco SQLite local (`src/data/sqlite/music.db`)
 - Terminal Bash (para execução de comandos shell)
 - Chave de API do OpenRouter (veja abaixo)
 
----
+## Como Rodar o Projeto
+
+```bash
+# Clone o repositório
+git clone https://github.com/Curling-AI/hiring-challenge-alpha.git
+cd hiring-challenge-alpha
+
+# Baixe o PR como um branch local
+git fetch origin pull/1/head:hiring-challenge-alpha/bruno-trindade
+
+# Mude para o branch do PR
+git checkout hiring-challenge-alpha/bruno-trindade
+
+# Instale as dependências
+npm install
+```
 
 ## Autenticação com o LLM
 
@@ -69,6 +75,11 @@ export const llm = new ChatOpenAI({
 });
 ```
 > ℹ️ A biblioteca `dotenv` já está incluída nas dependências.
+
+```bash
+# Após todos os passos anteriores, execute o projeto
+node src/main.js
+```
 
 ---
 
