@@ -30,8 +30,15 @@ Para que o agente se comunique com o modelo de linguagem (via OpenRouter), é ne
 1. Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
 ```env
-LLM_API_KEY=sua-chave-do-openrouter
+# Chave da API do OpenRouter (obtenha em https://openrouter.ai/)
+LLM_API_KEY=sua-chave-aqui
+
+# Configurações do LLM
 LLM_BASE_URL=https://openrouter.ai/api/v1
+
+# Caminhos para os arquivos locais
+DOCUMENT_PATH=./src/data/documents/economy_books.txt  
+DATABASE_PATH=./src/data/sqlite/music.db             
 ```
 
 > Você pode obter uma chave gratuita (com limites) em: https://openrouter.ai/
@@ -60,7 +67,7 @@ export const llm = new ChatOpenAI({
   },
   max_tokens: 4000,
 });
-
+```
 > ℹ️ A biblioteca `dotenv` já está incluída nas dependências.
 
 ---
