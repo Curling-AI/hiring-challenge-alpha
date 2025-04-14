@@ -30,7 +30,8 @@ Para que o agente se comunique com o modelo de linguagem (via OpenRouter), é ne
 1. Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
 ```env
-OPENROUTER_API_KEY=sua-chave-aqui
+LLM_API_KEY=sua-chave-do-openrouter
+LLM_BASE_URL=https://openrouter.ai/api/v1
 ```
 
 > Você pode obter uma chave gratuita (com limites) em: https://openrouter.ai/
@@ -46,12 +47,19 @@ dotenv.config();
 
 ```js
 import { ChatOpenAI } from 'langchain/chat_models/openai';
+import dotenv from "dotenv";
 
-const model = new ChatOpenAI({
-  openAIApiKey: process.env.LLM_API_KEY,
-  modelName: 'gpt-3.5-turbo',
+dotenv.config();
+
+export const llm = new ChatOpenAI({
+  modelName: "openai/gpt-3.5-turbo",
+  temperature: 0.2,
+  apiKey: process.env.LLM_API_KEY,
+  configuration: {
+    baseURL: process.env.LLM_BASE_URL,
+  },
+  max_tokens: 4000,
 });
-```
 
 > ℹ️ A biblioteca `dotenv` já está incluída nas dependências.
 
