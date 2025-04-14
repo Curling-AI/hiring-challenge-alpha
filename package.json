@@ -1,0 +1,30 @@
+{
+  "name": "hiring-challenge-alpha",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Welcome to the Multi-Source AI Agent Challenge! In this project, you'll build an intelligent agent using Node.js and modern LLM frameworks that can answer questions by leveraging multiple data sources including SQLite databases, document files, and web content via bash commands.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brunotrindadefm/hiring-challenge-alpha.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brunotrindadefm/hiring-challenge-alpha/issues"
+  },
+  "homepage": "https://github.com/brunotrindadefm/hiring-challenge-alpha#readme",
+  "dependencies": {
+    "@langchain/community": "^0.3.40",
+    "@langchain/core": "^0.3.39",
+    "dotenv": "^16.5.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "zod": "^3.24.2"
+  }
+}

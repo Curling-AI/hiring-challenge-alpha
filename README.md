@@ -1,84 +1,142 @@
-# Multi-Source AI Agent Challenge
+# Hiring Challenge Alpha
 
-## Challenge Overview
-
-Welcome to the Multi-Source AI Agent Challenge! In this project, you'll build an intelligent agent using Node.js and modern LLM frameworks that can answer questions by leveraging multiple data sources including SQLite databases, document files, and web content via bash commands.
-
-## Challenge Requirements
-
-### Technology Stack
-- Node.js
-- [LangChain](https://js.langchain.com/docs/) - For LLM integration and chains
-- [LangGraph](https://js.langchain.com/docs/langgraph/) - For agent workflow orchestration
-
-### Core Features
-Your AI agent must be able to:
-
-1. **Answer questions using multiple data sources:**
-   - **SQLite databases**: The agent should query `.db` files placed in the `data/sqlite` folder
-   - **Document context**: The agent should extract information from `.txt` files in the `data/documents` folder
-   - **External data**: The agent should be able to run bash commands (with user approval) to gather additional data (e.g., using `curl` to fetch web content)
-
-2. **Implement a conversational interface** - either in the browser or terminal
-
-3. **Provide intelligent routing** - decide which data source is most appropriate for each question and use the right tools accordingly
-
-### Minimum Viable Product
-Your solution must demonstrate:
-
-- A functional agent that can respond to user questions
-- Proper routing between different data sources
-- A clear execution flow with user approval for bash commands
-- Meaningful responses that integrate information from multiple sources when needed
-
-## Submission Guidelines
-
-1. Fork this repository
-2. Implement your solution
-3. Submit a pull request with your implementation
-4. Include detailed instructions on how to run and test your solution
-5. Your code must be 100% functional
-
-## Evaluation Criteria
-
-Your submission will be evaluated based on:
-
-- **Functionality**: Does it work as expected? Can it correctly use all three data sources?
-- **Code Quality**: Is the code well-organized, commented, and following best practices?
-- **Error Handling**: How does the agent handle edge cases and errors?
-- **User Experience**: Is the conversation with the agent natural and helpful?
-- **Documentation**: Is the setup and usage well documented?
-
-## Setup Instructions
-
-Include detailed instructions on how to set up and run your solution. For example:
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Configure environment variables (copy `.env.example` to `.env` and fill in required values)
-4. Add sample databases to the `sqlite` folder
-5. Add sample documents to the `documents` folder
-6. Start the agent: `npm start`
-
-## Testing Your Implementation
-
-Your README should include instructions on how to test the agent functionality, such as:
-
-1. Sample questions that query SQLite databases
-2. Sample questions that require document context
-3. Sample questions that would trigger bash commands (and how to approve them)
-4. Examples of questions that combine multiple data sources
-
-## Resources
-
-- [LangChain JS Documentation](https://js.langchain.com/docs/)
-- [LangGraph Documentation](https://js.langchain.com/docs/langgraph/)
-- [SQLite in Node.js Guide](https://www.sqlitetutorial.net/sqlite-nodejs/)
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+Um agente inteligente que responde perguntas sobre um banco de dados musical e documentos sobre livros de economia, utilizando ferramentas como SQLite, leitura de arquivos e comandos Bash.
 
 ---
 
-Good luck with your implementation! We're excited to see your creative solutions to this challenge.
+## Como Rodar o Projeto
+
+```bash
+# Instale as dependências
+npm install
+
+# Execute o projeto
+node src/main.js
+```
+
+### Requisitos
+
+- Node.js v18+
+- Banco SQLite local (`src/data/sqlite/music.db`)
+- Terminal Bash (para execução de comandos shell)
+- Chave de API do OpenRouter (veja abaixo)
+
+---
+
+## Autenticação com o LLM
+
+Para que o agente se comunique com o modelo de linguagem (via OpenRouter), é necessário fornecer uma chave de API.
+
+1. Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
+
+```env
+OPENROUTER_API_KEY=sua-chave-aqui
+```
+
+> Você pode obter uma chave gratuita (com limites) em: https://openrouter.ai/
+
+2. No topo do arquivo `llm.js`, adicione:
+
+```js
+import dotenv from 'dotenv';
+dotenv.config();
+```
+
+3. Use a variável de ambiente na configuração do modelo:
+
+```js
+import { ChatOpenAI } from 'langchain/chat_models/openai';
+
+const model = new ChatOpenAI({
+  openAIApiKey: process.env.LLM_API_KEY,
+  modelName: 'gpt-3.5-turbo',
+});
+```
+
+> ℹ️ A biblioteca `dotenv` já está incluída nas dependências.
+
+---
+
+## Funcionalidades
+
+- Consultas a um banco de dados musical usando SQL (SQLite)
+- Leitura e interpretação de documentos sobre livros de economia
+- Execução de comandos Bash com aprovação do usuário
+- Interface de linha de comando com histórico de conversa
+
+---
+
+## Exemplos de Uso
+
+### Consultas Musicais
+```bash
+> Me fale 10 artistas do gênero pop.
+> Liste 10 músicas do gênero 'Rock'
+> Quais são os álbuns do AC/DC?
+> Quais músicas estão no álbum Let There Be Rock?
+> Mostre músicas com mais de 5 minutos
+```
+
+### Consultas Documentais
+```bash
+> Me mostre informações sobre inflação.
+> O que o documento diz sobre PIB?
+> Tem algo sobre desemprego nos documentos?
+> Leia o documento 'Crescimento Econômico 2023'.
+> Compare as visões de Keynes e Friedman sobre crescimento econômico.
+```
+
+### Comandos Bash (com aprovação)
+```bash
+> Liste arquivos no diretório atual [Aprovar? (y/n)]
+> Verifique o uso de disco [Aprovar? (y/n)]
+> Conte quantos documentos existem [Aprovar? (y/n)]
+```
+
+### Consultas Combinadas
+```bash
+> Compare artistas populares com tendências econômicas
+> Relacione gêneros musicais com dados demográficos
+```
+
+---
+
+## Estrutura do Projeto
+
+```
+src/
+├── agent/              # Agente e configuração do LLM
+│   ├── agent.js
+│   ├── llm.js
+│   └── prompt.js
+├── cli/                # Interface CLI
+│   └── rl.js
+├── data/
+│   ├── documents/      # Documentos econômicos
+│   │   └── economy_books.txt
+│   └── sqlite/         # Banco de dados musical
+│       └── music.db
+├── tools/              # Ferramentas integradas
+│   ├── bashTool.js
+│   ├── documentTool.js
+│   ├── sqliteTool.js
+│   └── index.js
+index.js                # Ponto de entrada principal
+```
+
+---
+
+## Tecnologias Usadas
+
+- Node.js
+- SQLite
+- LangChain
+- Zod
+- Bash (simulado via Node.js)
+
+---
+
+## Autor
+
+Feito por **Bruno Trindade**.
+
