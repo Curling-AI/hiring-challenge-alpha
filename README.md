@@ -120,23 +120,23 @@ export const llm = new ChatOpenAI({
 
 ```
 src/
-├── agent/              # Agente e configuração do LLM
+├── agent/      # Configuração e execução do agente (LLM, prompt, ferramentas)
 │   ├── agent.js
 │   ├── llm.js
 │   └── prompt.js
-├── cli/                # Interface CLI
-│   └── rl.js
+├── cli/           
+│   └── rl.js       # Interface via linha de comando
 ├── data/
-│   ├── documents/      # Documentos econômicos
-│   │   └── economy_books.txt
-│   └── sqlite/         # Banco de dados musical
-│       └── music.db
-├── tools/              # Ferramentas integradas
-│   ├── bashTool.js
-│   ├── documentTool.js
-│   ├── sqliteTool.js
-│   └── index.js
-index.js                # Ponto de entrada principal
+│   ├── documents/      
+│   │   └── economy_books.txt       # Documento txt com informações de livros sobre economia
+│   └── sqlite/       
+│       └── music.db      # Banco de dados SQLite
+├── tools/              
+│   ├── bashTool.js      # Execução de comandos bash
+│   ├── documentTool.js       # Leitura de documentos locais
+│   ├── sqliteTool.js     # Consulta ao banco SQLite
+│   └── index.js      # Exporta todas as ferramentas
+index.js      # Arquivo principal que inicializa tudo
 ```
 
 ---
