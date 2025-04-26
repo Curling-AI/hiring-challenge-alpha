@@ -1,59 +1,68 @@
-import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
-import { ToolNode } from '@langchain/langgraph/prebuilt';
-import { END, MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
+import { END, START, StateGraph } from '@langchain/langgraph';
 import { ChatGroq } from '@langchain/groq';
 import { config } from 'dotenv';
+import { RESPONSE_GENERATOR_PROMPT, SOURCE_CHOSER_PROMPT } from './prompt.js';
+import { readdirSync } from 'fs';
+import { TextLoader } from 'langchain/document_loaders/fs/text';
+import { StateAnnotation } from './state.js';
 
 config();
 
-const getDocumentText = tool((input) => {
-    if (['The Wealth of Nations', 'The General Theory of Employment, Interest, and Money'].includes(input.book)) {
-        return `### The Wealth of Nations (1776)
-        Author: Adam Smith
-        Summary: Often considered the foundation of modern economic thought, Smith introduced the concept of the "invisible hand" of the market and argued for free trade and market competition. He explained how self-interest in a free-market economy leads to economic prosperity through division of labor, productivity improvements, and efficient resource allocation.
-        Key concepts: Division of labor, free markets, self-interest leading to public benefit, laissez-faire economics
-        Impact: Formed the foundation of classical economics and promoted free market capitalism as an economic system.`
-    } else {
-        return "No information available for this book."
-    }
-}, {
-    name: 'get_document_text',
-    description: 'Get the text of a book. The input should be the name of the book.',
-    schema: z.object({
-        book: z.string().describe('The name of the book.'),
+async function chooseSource(state) {
+    const systemMessage = SOURCE_CHOSER_PROMPT.replace('{files}', JSON.stringify(readdirSync(process.env.DATA_DIR+'/documents')));
+    const model = new ChatGroq({
+        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        temperature: 0,
+        apiKey: process.env.GROQ_API_KEY,
     })
-})
-const tools = [getDocumentText]
-
-const model = new ChatGroq({
-    model: process.env.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile',
-    temperature: 0,
-    apiKey: process.env.VITE_GROQ_API_KEY,
-}).bindTools(tools)
-
-const toolNode = new ToolNode(tools)
-
-const shouldContinue = (state) => {
-    const { messages } = state;
-    const lastMessage = messages[messages.length - 1];
-    if ("tool_calls" in lastMessage && Array.isArray(lastMessage.tool_calls) && lastMessage.tool_calls?.length) {
-        return "tools";
-    }
-    return END;
+    const messages = [
+        { role: 'system', content: systemMessage },
+        ...state.messages,
+    ];
+    const Files = z.object({
+        files: z.array(z.string()).describe('The list of files.'),
+    })
+    .describe('The files to query information.');
+    const response = await model.withStructuredOutput(Files).invoke(messages);
+    return { files: response.files };
 }
 
-const callModel = async (state) => {
-    const { messages } = state;
+async function getFileContents(state) {
+    console.log('getFileContents', state);
+    const { files } = state;
+    const fileContents = await Promise.all(files.map(async file => {
+        const loader = new TextLoader(`${process.env.DATA_DIR}/documents/${file}`);
+        const content = await loader.load().then(docs => docs.map(doc => doc.pageContent).join('\n'));
+        return { filename: file, content };
+    }));
+    return { file_contents: fileContents };
+}
+
+async function generateResponse(state) {
+    const { file_contents } = state;
+    const systemMessage = RESPONSE_GENERATOR_PROMPT.replace('{file_contents}', JSON.stringify(file_contents));
+    const model = new ChatGroq({
+        model: process.env.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile',
+        temperature: 0,
+        apiKey: process.env.VITE_GROQ_API_KEY,
+    })
+    const messages = [
+        { role: 'system', content: systemMessage },
+        ...state.messages,
+    ];
     const response = await model.invoke(messages);
-    return { messages: response };
+    return { messages: [response] };
 }
 
-const workflow = new StateGraph(MessagesAnnotation)
-    .addNode("agent", callModel)
-    .addNode("tools", toolNode)
-    .addEdge(START, "agent")
-    .addConditionalEdges("agent", shouldContinue, ["tools", END])
-    .addEdge("tools", "agent")
+const workflow = new StateGraph(StateAnnotation)
+    .addNode("source_chooser", chooseSource)
+    .addNode("get_file_contents", getFileContents)
+    .addNode("response_generator", generateResponse)
+    .addEdge(START, "source_chooser")
+    .addEdge("source_chooser", "get_file_contents")
+    .addEdge("get_file_contents", "response_generator")
+    .addEdge("response_generator", END)
+
 
 export const agent = workflow.compile()

@@ -10,7 +10,7 @@
         });
         const data = await res.json();
         console.log(data);
-        reply = data.reply.messages[data.reply.messages.length - 1].content;
+        reply = data.reply.messages[data.reply.messages.length - 1].kwargs.content;
         }
 
 </script>
