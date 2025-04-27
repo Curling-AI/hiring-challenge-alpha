@@ -16,7 +16,7 @@ app.listen(PORT, () => {
 });
 
 app.post('/ask', async (req, res) => {
-    const { message } = req.body;
+    const { message, web_search_allowed } = req.body;
     const response = await agent.invoke({
         messages: [
             {
@@ -24,6 +24,8 @@ app.post('/ask', async (req, res) => {
                 content: message,
             },
         ],
+        web_search_allowed: web_search_allowed || false,
     });
-    res.json({ reply: response });
+    
+    res.json({ reply: {messages: response.messages, sql_queries:response.sql_queries, files:response.files, web_search_results:response.web_search_results.map(r => r.result?.link)} });
 })

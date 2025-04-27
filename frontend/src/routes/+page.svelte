@@ -6,7 +6,7 @@
         const res = await fetch('/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage })
+        body: JSON.stringify({ message: userMessage, web_search_allowed: true }),
         });
         const data = await res.json();
         console.log(data);
