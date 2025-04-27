@@ -25,4 +25,18 @@ export const StateAnnotation = Annotation.Root({
     reducer: (currentContents, newContents) => currentContents.concat(newContents),
     default: () => [],
   }),
+
+  // SQL query field to store an array of SQL query
+  sql_queries: Annotation({
+    reducer: (currentQueries, newQueries) => currentQueries.concat(newQueries),
+    default: () => [],
+  }),
+
+  // SQL query results field to store an array of SQL query results
+  sql_query_results: Annotation({
+    reducer: (currentResults, newResults) => currentResults.concat(newResults),
+    default: () => [],
+  }),
+
+
 });
