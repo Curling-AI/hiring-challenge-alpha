@@ -6,6 +6,9 @@ export default defineConfig({
 	server: {
 		proxy: {
 			'/ask' : 'http://127.0.0.1:3000'
-		}
+		},
+		watch: {
+			usePolling: true,
+		},
 	}
 });
