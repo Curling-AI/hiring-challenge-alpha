@@ -1,0 +1,49 @@
+{
+  "name": "multi-source-ai-agent",
+  "version": "1.0.0",
+  "description": "AI Agent that answers questions using multiple data sources",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zaqueu-1/hiring-challenge-alpha.git"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "langchain",
+    "sqlite",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zaqueu-1/hiring-challenge-alpha/issues"
+  },
+  "homepage": "https://github.com/zaqueu-1/hiring-challenge-alpha#readme",
+  "dependencies": {
+    "@langchain/langgraph": "^0.0.10",
+    "@types/node": "^20.11.24",
+    "dotenv": "^16.4.5",
+    "langchain": "^0.1.21",
+    "sqlite3": "^5.1.7",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.5.3",
+    "ts-jest": "^29.3.2",
+    "ts-node": "^10.9.2"
+  }
+}
