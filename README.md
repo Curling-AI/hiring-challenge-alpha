@@ -1,84 +1,161 @@
 # Multi-Source AI Agent Challenge
 
-## Challenge Overview
+Solution to the hiring challenge of curling ai:
 
-Welcome to the Multi-Source AI Agent Challenge! In this project, you'll build an intelligent agent using Node.js and modern LLM frameworks that can answer questions by leveraging multiple data sources including SQLite databases, document files, and web content via bash commands.
+[CHALENGE_README](CHALLENGE_README)
 
-## Challenge Requirements
+## Overview
 
-### Technology Stack
-- Node.js
-- [LangChain](https://js.langchain.com/docs/) - For LLM integration and chains
-- [LangGraph](https://js.langchain.com/docs/langgraph/) - For agent workflow orchestration
+This solution implements an intelligent AI agent capable of answering user questions by intelligently selecting and querying multiple data sources: SQLite databases, local documents, and external web content via bash commands.  
+It uses:
 
-### Core Features
-Your AI agent must be able to:
+- **Express** for the backend server and API handling
+- **LangChain** and **LangGraph** for the agent logic
+- **Svelte** for a modern, interactive frontend interface
 
-1. **Answer questions using multiple data sources:**
-   - **SQLite databases**: The agent should query `.db` files placed in the `data/sqlite` folder
-   - **Document context**: The agent should extract information from `.txt` files in the `data/documents` folder
-   - **External data**: The agent should be able to run bash commands (with user approval) to gather additional data (e.g., using `curl` to fetch web content)
+---
 
-2. **Implement a conversational interface** - either in the browser or terminal
+## Agent Execution Graph
 
-3. **Provide intelligent routing** - decide which data source is most appropriate for each question and use the right tools accordingly
+The agent follows the following process to answer the user's question
 
-### Minimum Viable Product
-Your solution must demonstrate:
+![](graph.png)
 
-- A functional agent that can respond to user questions
-- Proper routing between different data sources
-- A clear execution flow with user approval for bash commands
-- Meaningful responses that integrate information from multiple sources when needed
+If web searching is not allowed the agent moves from the `get_sql_query_results` directly to the `response_generator`,
+else it analyses if more information is necessary and, if necessary, generate and perform web searches.
 
-## Submission Guidelines
+To perform a web search the AI creates querys that are used in the search engine duckduckgo trough the bash command 
 
-1. Fork this repository
-2. Implement your solution
-3. Submit a pull request with your implementation
-4. Include detailed instructions on how to run and test your solution
-5. Your code must be 100% functional
+```bash
+curl -s -L "https://duckduckgo.com/html/?q=the+generated+query"`
+```
 
-## Evaluation Criteria
+then the algorithm fetchs the link of the first result and executes the bash command 
+```bash
+curl -L -s "https://first-result-link"
+```
 
-Your submission will be evaluated based on:
+---
 
-- **Functionality**: Does it work as expected? Can it correctly use all three data sources?
-- **Code Quality**: Is the code well-organized, commented, and following best practices?
-- **Error Handling**: How does the agent handle edge cases and errors?
-- **User Experience**: Is the conversation with the agent natural and helpful?
-- **Documentation**: Is the setup and usage well documented?
+## Project Structure
+
+```
+# The espress backend is in the main directory
+/frontend    # Svelte app for user interaction
+/data        
+  /sqlite    # SQLite database files
+  /documents # Text documents
+.env         # Environment variables
+```
+
+---
 
 ## Setup Instructions
 
-Include detailed instructions on how to set up and run your solution. For example:
+### 1. Clone the repository
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Configure environment variables (copy `.env.example` to `.env` and fill in required values)
-4. Add sample databases to the `sqlite` folder
-5. Add sample documents to the `documents` folder
-6. Start the agent: `npm start`
+```bash
+git clone https://github.com/Miguel-MCM/hiring-challenge-curling-ai
+cd multi-source-ai-agent
+```
 
-## Testing Your Implementation
+---
 
-Your README should include instructions on how to test the agent functionality, such as:
+### 2. Setup Backend
 
-1. Sample questions that query SQLite databases
-2. Sample questions that require document context
-3. Sample questions that would trigger bash commands (and how to approve them)
-4. Examples of questions that combine multiple data sources
+```bash
+npm install
+```
+
+- Create a `.env` file based on `.env.example`.
+
+Start the backend server:
+
+```bash
+node index.js
+```
+
+By default, it runs on `http://localhost:3000`.
+
+---
+
+### 3. Setup Frontend
+
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+This starts the Svelte development server, typically at `http://localhost:5173`, which communicates with the backend API.
+
+---
+
+### 4. Add Sample Data
+
+- Place your SQLite `.db` files into the `/data/sqlite/` directory.
+- Place your `.txt` document files into the `/data/documents/` directory.
+
+---
+
+## Using the Application
+
+1. Open the Svelte frontend in your browser.
+2. If wanted allow web searches
+3. Type a question in the chat interface.
+4. The backend agent will:
+   - Analyze your question
+   - Choose the appropriate data sources (database, document and/or external fetch via bash)
+4. You’ll receive a natural language answer!
+
+---
+
+## Example Questions
+
+| Type | Example Question | Expected Behavior |
+|:-----|:-----------------|:------------------|
+| SQLite | "What music is in most playlists?" | Queries the SQLite database |
+| Document | "What is the book The Wealth of Nations About?" | Reads and extracts from `.txt` files |
+| Bash Command | "How to bake a cake?" | Executes a web search with `curl` |
+| Multi-Source | "What music is in most playlists and what notes does it usew" | Combines SQLite and `curl` web search responses |
+
+---
+
+## Key Features
+
+✅ Intelligent data source routing  
+✅ User approval for executing bash commands  
+✅ Combined answers from multiple sources  
+✅ Simple and fast frontend using Svelte  
+✅ Modular, easy-to-extend backend with Express and LangChain  
+
+---
+
+## Environment Variables
+
+Backend expects the following variables in `.env`:
+
+```bash
+PORT=3000
+GROQ_API_KEY=your-groq-api-key
+GROQ_MODEL=desired_model (defaul is llama-3.3-70b-versatile) 
+DATA_DIR=./data
+```
+
+---
+
+## Future Improvements
+
+- Add authentication and user sessions
+- Improve bash command security (sandboxing)
+- Add document format support beyond `.txt` (e.g., PDF, DOCX)
+- Enhance frontend UX with chat history and loading states
+
+---
 
 ## Resources
 
 - [LangChain JS Documentation](https://js.langchain.com/docs/)
 - [LangGraph Documentation](https://js.langchain.com/docs/langgraph/)
-- [SQLite in Node.js Guide](https://www.sqlitetutorial.net/sqlite-nodejs/)
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-Good luck with your implementation! We're excited to see your creative solutions to this challenge.
+- [Express Documentation](https://expressjs.com/)
+- [Svelte Documentation](https://svelte.dev/)
