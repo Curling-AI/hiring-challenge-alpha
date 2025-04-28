@@ -26,7 +26,11 @@ async function chooseSource(state) {
         ...state.messages,
     ];
 
-    const response = await model.withStructuredOutput(Sources).invoke(messages);
+    const response = await model.withStructuredOutput(Sources).invoke(messages)
+    .catch(err => {
+        console.error("Error in chooseSource:", err);
+        return { files: [], sql_queries: [] };
+    });
     return { ...response };
 }
 
@@ -34,7 +38,11 @@ async function getFileContents(state) {
     const { files } = state;
     const fileContents = await Promise.all(files.map(async file => {
         const loader = new TextLoader(`${process.env.DATA_DIR}/documents/${file}`);
-        const content = await loader.load().then(docs => docs.map(doc => doc.pageContent).join('\n'));
+        const content = await loader.load().then(docs => docs.map(doc => doc.pageContent).join('\n'))
+        .catch(err => {
+            console.error(`Error loading file "${file}":`, err);
+            return "";
+        });
         return { filename: file, content };
     }));
     return { file_contents: fileContents };
@@ -77,7 +85,11 @@ async function haveEnoughInformation(state) {
         { role: 'system', content: systemMessage },
         ...state.messages,
     ];
-    const response = await model.withStructuredOutput(z.object({have_enough_info:z.boolean(),})).invoke(messages);
+    const response = await model.withStructuredOutput(z.object({have_enough_info:z.boolean(),})).invoke(messages)
+    .catch(err => {
+        console.error("Error in haveEnoughInformation:", err);
+        return { have_enough_info: false };
+    });
     return { have_enough_info: response.have_enough_info };
 }
 
@@ -103,14 +115,22 @@ async function createWebSearchQuery(state) {
         { role: 'system', content: systemMessage },
         ...state.messages, 
     ];
-    const response = await model.withStructuredOutput(z.object({ web_search_query: z.array(z.string()) })).invoke(messages);
+    const response = await model.withStructuredOutput(z.object({ web_search_query: z.array(z.string()) })).invoke(messages)
+    .catch(err => {
+        console.error("Error in createWebSearchQuery:", err);
+        return { web_search_query: [] };
+    });
     return { web_search_query: response.web_search_query };
 }
 
 async function performWebSearch(state) {
     const { web_search_query } = state;
     const webSearchResults = await Promise.all(web_search_query.map(async query => {
-        const result = await getWebSearchResult(query);
+        const result = await getWebSearchResult(query)
+        .catch(err => {
+            console.error(`Error performing web search for query "${query}":`, err);
+            return null;
+        });
         return { query, result };
     }
     ));
@@ -132,7 +152,11 @@ async function generateResponse(state) {
         { role: 'system', content: systemMessage },
         ...state.messages,
     ];
-    const response = await model.invoke(messages);
+    const response = await model.invoke(messages)
+    .catch(err => {
+        console.error("Error in generateResponse:", err);
+        return { content: "I don't know" };
+    });
     return { messages: [response] };
 }
 

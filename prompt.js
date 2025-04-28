@@ -24,11 +24,23 @@ The following json contains the contents and name of the files:
 The following json contains the results of the sql queries:
 {sql_query_results}
 
+If the question doesnt seen to require any additional information, \
+or seems to be a general conversation instead of a question, \
+like a greeting or a statement, \
+you should answer with true. \
+
+To determine if the information is enough to answer the user's question, \
+consider all the already provided information, \
+the files, the sql queries and their results. \
+
 you have to answer with a boolean value. \
 If the information is enough to answer the user's question, \
 answer with true. \
 If the information is not enough to answer the user's question, \
 answer with false. \
+
+JUST ANSWER WITH ONE WORD: TRUE OR FALSE. \
+THERE IS NO NEED TO EXPLAIN YOUR ANSWER. \
 `
 
 export const CREATE_WEB_SEARCH_QUERY_PROMPT = `\
