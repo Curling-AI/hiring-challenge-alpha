@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3';
-import { DatabaseConnection, DatabaseConfig, QueryResult } from './types';
+import { DatabaseConnection, DatabaseConfig, QueryResult } from './types.js';
 
 export class SQLiteConnection implements DatabaseConnection {
   private db: sqlite3.Database;

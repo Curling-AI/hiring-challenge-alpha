@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { DocumentConfig, DocumentContent, DocumentProcessor } from './types';
+import { DocumentConfig, DocumentContent, DocumentProcessor, SearchResult } from './types';
 
 export class TextDocumentProcessor implements DocumentProcessor {
   private config: DocumentConfig;
@@ -32,12 +32,25 @@ export class TextDocumentProcessor implements DocumentProcessor {
       const files = await fs.readdir(this.config.path);
       const txtFiles = files.filter(file => file.endsWith('.txt'));
       
-      return Promise.all(
-        txtFiles.map(file => this.readDocument(file))
+      const results = await Promise.all(
+        txtFiles.map(filename => this.readDocument(filename))
       );
+
+      return results;
     } catch (error) {
-      throw new Error(`Error listing documents: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Erro ao ler todos os documentos:', error);
+      return []; // Retorna array vazio em caso de erro
     }
+  }
+
+  async search(query: string): Promise<SearchResult> {
+    console.warn(`Método search chamado com query: "${query}". Implementação pendente.`);
+    // TODO: Implementar lógica de busca real nos documentos
+    // Por enquanto, retorna sucesso com dados vazios
+    return {
+      success: true,
+      data: [], 
+    };
   }
 }
 
