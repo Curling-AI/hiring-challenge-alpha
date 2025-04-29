@@ -1,12 +1,16 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { DocumentConfig, DocumentContent, DocumentProcessor, SearchResult } from './types';
+import { DocumentConfig, DocumentContent, DocumentProcessor, SearchResult } from './types.js';
 
 export class TextDocumentProcessor implements DocumentProcessor {
   private config: DocumentConfig;
 
   constructor(config: DocumentConfig) {
     this.config = config;
+  }
+
+  public getDocumentsPath(): string {
+    return this.config.path;
   }
 
   async readDocument(filename: string): Promise<DocumentContent> {
@@ -38,19 +42,39 @@ export class TextDocumentProcessor implements DocumentProcessor {
 
       return results;
     } catch (error) {
-      console.error('Erro ao ler todos os documentos:', error);
-      return []; // Retorna array vazio em caso de erro
+      console.error('Error reading all documents:', error);
+      return [];
     }
   }
 
   async search(query: string): Promise<SearchResult> {
-    console.warn(`Método search chamado com query: "${query}". Implementação pendente.`);
-    // TODO: Implementar lógica de busca real nos documentos
-    // Por enquanto, retorna sucesso com dados vazios
-    return {
-      success: true,
-      data: [], 
-    };
+    try {
+      const allDocuments = await this.readAllDocuments();
+      const lowerCaseQuery = query.toLowerCase();
+      
+      const matchingDocuments = allDocuments.filter(doc => 
+        doc.content.toLowerCase().includes(lowerCaseQuery)
+      );
+
+      if (matchingDocuments.length > 0) {
+        return {
+          success: true,
+          data: matchingDocuments, 
+        };
+      } else {
+        return {
+          success: true,
+          data: [],
+        };
+      }
+    } catch (error: any) {
+      console.error('Error during content search in documents:', error);
+      return {
+        success: false,
+        data: [],
+        error: `Error searching content in documents: ${error.message}`,
+      };
+    }
   }
 }
 

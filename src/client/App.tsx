@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import Sidebar from './Sidebar';
+import Sidebar from './Sidebar.js';
 import { IoMdArrowUp } from "react-icons/io";
 import { FaSpinner } from "react-icons/fa";
 
@@ -37,10 +37,11 @@ const App: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedQuestion = question.trim();
-    if (!trimmedQuestion || isLoading) return;
+    const questionToSend = question.trim();
+    
+    if (!questionToSend || isLoading) return;
 
-    const newUserMessage: Message = { type: 'user', content: trimmedQuestion };
+    const newUserMessage: Message = { type: 'user', content: questionToSend };
     const currentHistory = [...messages];
     
     setMessages(prev => [
@@ -63,7 +64,7 @@ const App: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          question: trimmedQuestion,
+          question: questionToSend,
           history: currentHistory
         }), 
       });
@@ -105,6 +106,9 @@ const App: React.FC = () => {
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
+    setTimeout(() => {
+        formRef.current?.requestSubmit();
+    }, 0);
   };
 
   return (

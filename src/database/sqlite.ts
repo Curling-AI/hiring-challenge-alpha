@@ -1,38 +1,53 @@
 import sqlite3 from 'sqlite3';
+import path from 'path';
+import fs from 'fs';
 import { DatabaseConnection, DatabaseConfig, QueryResult } from './types.js';
 
 export class SQLiteConnection implements DatabaseConnection {
-  private db: sqlite3.Database;
+  private baseDir: string;
 
   constructor(config: DatabaseConfig) {
-    this.db = new sqlite3.Database(config.path);
+    if (!fs.existsSync(config.path) || !fs.lstatSync(config.path).isDirectory()) {
+      throw new Error(`Base database directory not found or invalid: ${config.path}`);
+    }
+    this.baseDir = config.path;
   }
 
-  async query(sql: string, params: any[] = []): Promise<QueryResult> {
-    return new Promise((resolve) => {
-      this.db.all(sql, params, (err, rows) => {
+  public getBaseDir(): string {
+    return this.baseDir;
+  }
+
+  async query(dbFilename: string, sql: string, params: any[] = []): Promise<QueryResult> {
+    const dbFilePath = path.join(this.baseDir, dbFilename);
+    
+    if (!dbFilename.endsWith('.db')) {
+        return { success: false, error: `Invalid filename: ${dbFilename}. Must end with .db` };
+    }
+    if (!fs.existsSync(dbFilePath) || !fs.lstatSync(dbFilePath).isFile()) {
+      return { success: false, error: `Database file not found: ${dbFilePath}` };
+    }
+
+    const db = new sqlite3.Database(dbFilePath, sqlite3.OPEN_READONLY, (err) => {
         if (err) {
-          resolve({
-            success: false,
-            error: err.message,
-          });
-        } else {
-          resolve({
-            success: true,
-            data: rows,
-          });
+            console.error(`Error opening ${dbFilePath}: ${err.message}`);
         }
-      });
     });
-  }
 
-  async close(): Promise<void> {
     return new Promise((resolve) => {
-      this.db.close((err) => {
-        if (err) {
-          console.error('Error closing connection:', err);
-        }
-        resolve();
+      db.all(sql, params, (err, rows) => {
+        db.close((closeErr) => {
+          if (closeErr) {
+            if (!err) {
+              resolve({ success: false, error: `Error closing connection after successful query: ${closeErr.message}` });
+              return;
+            }
+          }
+          if (err) {
+            resolve({ success: false, error: `Error in query [${dbFilename}]: ${err.message}` });
+          } else {
+            resolve({ success: true, data: rows });
+          }
+        });
       });
     });
   }

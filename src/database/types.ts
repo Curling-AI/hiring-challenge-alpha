@@ -9,6 +9,6 @@ export interface QueryResult {
 }
 
 export interface DatabaseConnection {
-  query: (sql: string, params?: any[]) => Promise<QueryResult>;
-  close: () => Promise<void>;
+  query: (dbFilename: string, sql: string, params?: any[]) => Promise<QueryResult>; 
+  getBaseDir: () => string;
 } 

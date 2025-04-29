@@ -4,8 +4,9 @@ import dotenv from 'dotenv';
 import { createConnection } from './database/sqlite.js';
 import { createDocumentProcessor } from './documents/processor.js';
 import { createCommandExecutor } from './external/executor.js';
-import { createAgent } from './agent/agent.js';
+import { runAgent } from './agent/agent.js';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
 
 try {
   dotenv.config();
@@ -19,61 +20,26 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-let agent: any = null;
-
-async function initializeAgent() {
-  try {
-    const dbPath = process.env.SQLITE_DB_PATH || './data/sqlite/music.db';
-    const dbConnection = await createConnection({ path: dbPath });
-
-
-    const docsPath = process.env.DOCUMENTS_PATH || './data/documents';
-    const documentProcessor = createDocumentProcessor({ path: docsPath });
-
-
-    const allowedCommands = ['curl', 'wget', 'cat', 'grep'];
-    const commandExecutor = createCommandExecutor({
-      allowedCommands: allowedCommands,
-      requireApproval: true,
-    });
-
-
-    const geminiApiKey = process.env.GEMINI_API_KEY;
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not defined');
-    }
-
-    const agentInstance = createAgent(
-      {
-        apiKey: geminiApiKey,
-        modelName: 'gemini-1.5-flash-latest',
-        temperature: 0.7,
-      },
-      {
-        database: dbConnection,
-        documents: documentProcessor,
-        commands: commandExecutor,
-      }
-    );
-    return agentInstance;
-
-  } catch (error) {
-    throw error; 
-  }
-}
-
 app.post('/api/ask', async (req, res) => {
   try {
-    if (!agent) {
-      agent = await initializeAgent();
-    }
-
-    const { question } = req.body;
+    const { question, history } = req.body;
+    
     if (!question) {
       return res.status(400).json({ error: 'QUESTION NOT PROVIDED' });
     }
 
-    const response = await agent.processQuestion(question);
+    const formattedHistory = (history || []).map((msg: any) => { 
+        if (msg.type === 'user') {
+            return new HumanMessage(msg.content);
+        } else if (msg.type === 'agent') {
+            return new AIMessage(msg.content);
+        } else {
+            return null;
+        }
+    }).filter((msg: any) => msg !== null);
+
+    const response = await runAgent(question, formattedHistory);
+    
     res.json(response);
   } catch (error) {
     res.status(500).json({ 
