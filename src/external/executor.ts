@@ -6,6 +6,7 @@ const execAsync = promisify(exec);
 
 export class BashCommandExecutor implements CommandExecutor {
   private config: CommandConfig;
+  private approvalCallback?: (command: string) => Promise<boolean>;
 
   constructor(config: CommandConfig) {
     this.config = config;
@@ -16,13 +17,27 @@ export class BashCommandExecutor implements CommandExecutor {
     return this.config.allowedCommands.includes(commandBase);
   }
 
+  setApprovalCallback(callback: (command: string) => Promise<boolean>) {
+    this.approvalCallback = callback;
+  }
+
   async execute(command: string): Promise<CommandResult> {
     try {
       if (!this.validate(command)) {
         return {
           success: false,
-          error: 'Command not allowed',
+          error: `Comando não permitido: Apenas os seguintes comandos são permitidos: ${this.config.allowedCommands.join(', ')}`,
         };
+      }
+
+      if (this.config.requireApproval && this.approvalCallback) {
+        const approved = await this.approvalCallback(command);
+        if (!approved) {
+          return {
+            success: false,
+            error: 'Comando não aprovado pelo usuário',
+          };
+        }
       }
 
       const { stdout, stderr } = await execAsync(command);

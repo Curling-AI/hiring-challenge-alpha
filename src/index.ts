@@ -1,10 +1,13 @@
 import dotenv from 'dotenv';
-import { runAgent } from './agent/agent.js';
+import { runAgent, setGlobalCommandExecutor } from './agent/agent.js';
 import readline from 'readline/promises';
 import chalk from 'chalk';
+import { createCommandExecutor } from './external/executor.js';
+import { BashCommandExecutor } from './external/executor.js';
 
 dotenv.config();
 
+let rl: readline.Interface;
 
 function formatErrors(erro: any): string {
   const mensagemErro = String(erro);
@@ -27,6 +30,14 @@ function formatErrors(erro: any): string {
   return 'Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.';
 }
 
+async function requestCommandApproval(command: string): Promise<boolean> {
+  console.log('\n' + chalk.yellow('⚠️  Solicitação para executar comando:'));
+  console.log(chalk.yellow(`   ${command}`));
+  
+  const response = await rl.question(chalk.yellow('Aprovar execução? (s/n): '));
+  return response.toLowerCase() === 's' || response.toLowerCase() === 'sim';
+}
+
 async function main() {
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -34,16 +45,27 @@ async function main() {
       throw new Error('CLI: GEMINI_API_KEY not defined in .env');
     }
 
-    const rl = readline.createInterface({
+    rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
     });
+
+    const cmdExecutor = createCommandExecutor({ 
+      allowedCommands: ['curl', 'ls', 'cat', 'grep', 'find'], 
+      requireApproval: true 
+    }) as BashCommandExecutor;
+    
+    cmdExecutor.setApprovalCallback(requestCommandApproval);
+
+    setGlobalCommandExecutor(cmdExecutor);
 
     let history: { type: 'user' | 'agent'; content: string }[] = [];
 
     const askQuestion = async () => {
       console.log("\n" + chalk.bold.blue("Bem-vindo ao use.AI!"));
       console.log(chalk.blue("Faça sua pergunta ou digite 'sair' para encerrar a conversa."));
+      console.log(chalk.gray("Dica: Você pode solicitar ao agente para usar curl para buscar informações na internet."));
+      console.log(chalk.gray("      Exemplo: \"Busque o clima atual em São Paulo usando curl\""));
 
       while (true) {
         const question = await rl.question('\n' + chalk.green('Você: '));

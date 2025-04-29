@@ -345,10 +345,93 @@ Para a ferramenta read_document, o parâmetro é:
 Exemplo: {"input": "nome_do_arquivo.txt"}
 `;
         } else if (toolName === 'execute_command') {
+            const perguntaSimples = question.toLowerCase();
+            
+            const buscaWebPatterns = [
+                'buscar na internet', 'procurar na web', 'buscar online', 
+                'pesquisar sobre', 'busque sobre', 'consulte', 'use curl', 
+                'encontrar informações sobre', 'clima', 'previsão', 'temperatura', 
+                'notícias', 'cotação', 'preço', 'valor'
+            ];
+            
+            const parece_busca_web = buscaWebPatterns.some(pattern => perguntaSimples.includes(pattern));
+            
+            if (parece_busca_web) {
+                let topico = '';
+                for (const pattern of ['buscar sobre', 'pesquisar sobre', 'busque sobre', 'informações sobre', 'dados sobre']) {
+                    if (perguntaSimples.includes(pattern)) {
+                        const pos = perguntaSimples.indexOf(pattern) + pattern.length;
+                        topico = perguntaSimples.substring(pos).trim();
+                        break;
+                    }
+                }
+                
+                if (!topico) {
+                    const trigger_words = ['buscar', 'procurar', 'pesquisar', 'encontrar', 'consultar', 'use curl', 'usando curl', 'na internet', 'na web', 'online'];
+                    let cleaned_question = perguntaSimples;
+                    
+                    for (const word of trigger_words) {
+                        cleaned_question = cleaned_question.replace(word, '');
+                    }
+                    
+                    topico = cleaned_question.trim();
+                    
+                    const articles = ['o ', 'a ', 'os ', 'as ', 'um ', 'uma ', 'uns ', 'umas ', 'sobre ', 'do ', 'da '];
+                    for (const article of articles) {
+                        if (topico.startsWith(article)) {
+                            topico = topico.substring(article.length);
+                        }
+                    }
+                }
+                
+                if (perguntaSimples.includes('clima') || perguntaSimples.includes('tempo') || 
+                    perguntaSimples.includes('temperatura') || perguntaSimples.includes('previsão')) {
+                    
+                    let local = topico;
+                    if (!local) {
+                        const locais_conhecidos = ['são paulo', 'rio de janeiro', 'brasília', 'salvador', 'recife', 'porto alegre'];
+                        for (const l of locais_conhecidos) {
+                            if (perguntaSimples.includes(l)) {
+                                local = l;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (local) {
+                        return {
+                            command: `curl -s "wttr.in/${encodeURIComponent(local)}?format=3"`
+                        };
+                    }
+                }
+                
+                if (topico.includes('http') || topico.includes('.com') || topico.includes('.org') || topico.includes('.net')) {
+                    return {
+                        command: `curl -s "${topico}" | head -n 50`
+                    };
+                }
+                
+                if (topico) {
+                    const search_query = encodeURIComponent(topico);
+                    return {
+                        command: `curl -s "https://lite.duckduckgo.com/lite/?q=${search_query}" | grep -o '<a href="http[^"]*"' | head -n 5`
+                    };
+                }
+            }
+            
             parameterDesc = `
 Para a ferramenta execute_command, o parâmetro é:
 - command: o comando bash a executar
-Exemplo: {"command": "curl -s https://exemplo.com"}
+
+A ferramenta pode executar os seguintes comandos: curl, ls, cat, grep, find.
+Ela deve sempre ser usada com cuidado e apenas para comandos seguros.
+
+Para buscas na web, use curl. Exemplos:
+- Para buscar informação sobre um tópico: curl -s "https://lite.duckduckgo.com/lite/?q=TERMO_BUSCA"
+- Para ver o clima em uma cidade: curl -s "wttr.in/CIDADE?format=3"
+- Para acessar uma URL específica: curl -s "https://exemplo.com/"
+
+Exemplo: {"command": "curl -s https://wttr.in/São_Paulo?format=3"}
 `;
         } else if (toolName === 'list_files') {
             parameterDesc = `
@@ -479,14 +562,29 @@ Use EXATAMENTE os nomes de parâmetros especificados acima.
     }
 }
 
+let agentExecutorInstance: any = null;
+let globalCommandExecutor: any = null;
+
+export function setGlobalCommandExecutor(executor: any) {
+  globalCommandExecutor = executor;
+}
+
+export async function getAgentExecutor(): Promise<any> {
+    if (!agentExecutorInstance) {
+        agentExecutorInstance = await initAgent();
+    }
+    return agentExecutorInstance;
+}
+
 async function initAgent() {
     await ensureDirectoriesExist();
 
     const dbConnection = await createConnection({ path: SQLITE_DIR });
     const docProcessor = createDocumentProcessor({ path: DOCUMENTS_DIR });
-    const cmdExecutor = createCommandExecutor({ 
+    
+    const cmdExecutor = globalCommandExecutor || createCommandExecutor({ 
         allowedCommands: ['curl'], 
-        requireApproval: false 
+        requireApproval: true  
     });
     
     const tools = [ 
@@ -507,15 +605,6 @@ async function initAgent() {
     const agent = new CustomAgent(model, tools);
 
     return agent;
-}
-
-let agentExecutorInstance: any = null;
-
-export async function getAgentExecutor(): Promise<any> {
-    if (!agentExecutorInstance) {
-        agentExecutorInstance = await initAgent();
-    }
-    return agentExecutorInstance;
 }
 
 function formatChatHistory(history: { type: 'user' | 'agent', content: string }[]): BaseMessage[] {

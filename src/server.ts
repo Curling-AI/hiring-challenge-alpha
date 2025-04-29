@@ -78,6 +78,7 @@ app.get('/api/test-llm', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+const portNumber = Number(port);
+app.listen(portNumber, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
 }); 

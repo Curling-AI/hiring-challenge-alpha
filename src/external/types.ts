@@ -8,6 +8,7 @@ export interface CommandResult {
 export interface CommandExecutor {
   execute: (command: string) => Promise<CommandResult>;
   validate: (command: string) => boolean;
+  setApprovalCallback?: (callback: (command: string) => Promise<boolean>) => void;
 }
 
 export interface CommandConfig {
