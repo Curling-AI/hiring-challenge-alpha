@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  # Serviço único com dois modos de execução
+  app:
+    build:
+      context: .
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env
+    ports:
+      - "5173:5173"
+      - "3001:3001"
+    # Para executar Web (padrão): docker-compose up
+    # Para executar CLI: docker-compose run --rm app npm run cli 
