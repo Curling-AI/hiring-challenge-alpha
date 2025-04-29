@@ -26,7 +26,6 @@
     display: none; /* Safari and Chrome */
 }
 
-/* Animação de "pensando" (reticências) */
 @keyframes thinking-dots {
   0%, 20% { content: '.'; }
   40% { content: '..'; }
@@ -34,14 +33,10 @@
 }
 
 .thinking-animation::after {
-  content: '.'; /* Conteúdo inicial */
+  content: '.';
   animation: thinking-dots 1.4s linear infinite;
-  display: inline-block; /* Necessário para aplicar animação ao content */
-  vertical-align: bottom; /* Alinhar pontos com a linha de base */
-  color: #555; /* Cor dos pontos (ajuste conforme necessário) */
-}
-
-body {
-  font-family: sans-serif; /* Exemplo */
+  display: inline-block; 
+  vertical-align: bottom; 
+  color: #555;
 }
 
