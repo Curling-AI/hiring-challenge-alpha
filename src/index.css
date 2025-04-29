@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #303030;
+  --color-primary-muted: #212121;
+  --color-secondary: #FFFFFF;
+  --color-secondary-muted: #F5F5F5;
+}
+
+.bg-background {
+  background-color: var(--color-primary);
+}
+
+.bg-background-muted {
+  background-color: var(--color-primary-muted);
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+}
+
+/* Animação de "pensando" (reticências) */
+@keyframes thinking-dots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+.thinking-animation::after {
+  content: '.'; /* Conteúdo inicial */
+  animation: thinking-dots 1.4s linear infinite;
+  display: inline-block; /* Necessário para aplicar animação ao content */
+  vertical-align: bottom; /* Alinhar pontos com a linha de base */
+  color: #555; /* Cor dos pontos (ajuste conforme necessário) */
+}
+
+body {
+  font-family: sans-serif; /* Exemplo */
+}
+
