@@ -1,84 +1,67 @@
-# Multi-Source AI Agent Challenge
+# Multi-Source AI Agent
 
-## Challenge Overview
+## Setup
+1. Clone this repository
+2. Add the necessary envs according to env.sample
+3. Install the required dependencies: `yarn install`
+4. Run the build script: `yarn build`
+5. Run the server: `yarn start`
+6. Alternativaly, you can run in dev mode without building: `yarn dev`
 
-Welcome to the Multi-Source AI Agent Challenge! In this project, you'll build an intelligent agent using Node.js and modern LLM frameworks that can answer questions by leveraging multiple data sources including SQLite databases, document files, and web content via bash commands.
+## ARCHITECTURE
+The app uses the MVC pattern, but with a services folder instead of a model's one.
+EJS for views and websockets for client-server communication.
 
-## Challenge Requirements
+## How to use
 
-### Technology Stack
-- Node.js
-- [LangChain](https://js.langchain.com/docs/) - For LLM integration and chains
-- [LangGraph](https://js.langchain.com/docs/langgraph/) - For agent workflow orchestration
+1. Wait for the server to start, then open the browser at the view route http://[::1]:{PORT:DEFAULT=3000}/api/v1/
+example view Route: http://[::1]:3000/api/v1/
 
-### Core Features
-Your AI agent must be able to:
+2. Start chatting with the AI agent.
 
-1. **Answer questions using multiple data sources:**
-   - **SQLite databases**: The agent should query `.db` files placed in the `data/sqlite` folder
-   - **Document context**: The agent should extract information from `.txt` files in the `data/documents` folder
-   - **External data**: The agent should be able to run bash commands (with user approval) to gather additional data (e.g., using `curl` to fetch web content)
+## Functionalities
 
-2. **Implement a conversational interface** - either in the browser or terminal
+1. The AI agent can answer questions in multiple languages
+example prompt: "change to portuguese"
 
-3. **Provide intelligent routing** - decide which data source is most appropriate for each question and use the right tools accordingly
+2. The AI agent is able to read any txt file inside data/documents
+example prompt: "search in the documents about economy books"
 
-### Minimum Viable Product
-Your solution must demonstrate:
+3. The AI agent is able to execute queries in data/sqlite
+example prompt: "i wanna know about music, get musics from the database"
 
-- A functional agent that can respond to user questions
-- Proper routing between different data sources
-- A clear execution flow with user approval for bash commands
-- Meaningful responses that integrate information from multiple sources when needed
+4. The AI agent is able to execute curl commands to search the web
+example prompt: "get data from wikipedia about civil war"
 
-## Submission Guidelines
+## NECESSARY IMPROVEMENTS
+1. Using @fastify/websocket is not scalable, since you cannot use it to emit events or create rooms,
+which opens the necessity for several workarounds and messes the code. Changing to socket.io is the better choice.
 
-1. Fork this repository
-2. Implement your solution
-3. Submit a pull request with your implementation
-4. Include detailed instructions on how to run and test your solution
-5. Your code must be 100% functional
+2. Currently, the online search tool do work, but it is honestly not consistent. Should improve the prompt to make it better
 
-## Evaluation Criteria
+3. The DOCUMENTS and QUERY tools need to query all the files in their folder, could add AI to filter it.
+## DEPENDENCIES LIST
 
-Your submission will be evaluated based on:
+### fastify
+@fastify/static
+@fastify/view
+@fastify/websocket
 
-- **Functionality**: Does it work as expected? Can it correctly use all three data sources?
-- **Code Quality**: Is the code well-organized, commented, and following best practices?
-- **Error Handling**: How does the agent handle edge cases and errors?
-- **User Experience**: Is the conversation with the agent natural and helpful?
-- **Documentation**: Is the setup and usage well documented?
+### langchain
+@langchain/community
+@langchain/core
+@langchain/google-genai
+@langchain/langgraph
 
-## Setup Instructions
-
-Include detailed instructions on how to set up and run your solution. For example:
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Configure environment variables (copy `.env.example` to `.env` and fill in required values)
-4. Add sample databases to the `sqlite` folder
-5. Add sample documents to the `documents` folder
-6. Start the agent: `npm start`
-
-## Testing Your Implementation
-
-Your README should include instructions on how to test the agent functionality, such as:
-
-1. Sample questions that query SQLite databases
-2. Sample questions that require document context
-3. Sample questions that would trigger bash commands (and how to approve them)
-4. Examples of questions that combine multiple data sources
-
-## Resources
-
-- [LangChain JS Documentation](https://js.langchain.com/docs/)
-- [LangGraph Documentation](https://js.langchain.com/docs/langgraph/)
-- [SQLite in Node.js Guide](https://www.sqlitetutorial.net/sqlite-nodejs/)
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-Good luck with your implementation! We're excited to see your creative solutions to this challenge.
+### others
+sqlite,
+sqlite3
+ejs,
+dotenv,
+nodemon,
+ts-node,
+typescript,
+@types/sqlite3,
+@types/ejs,
+@types/node,
+@types/ws,
